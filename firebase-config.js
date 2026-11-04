@@ -1,8 +1,8 @@
-// Dán thông tin Firebase của bạn vào đây (xem README.md, phần "Bật chơi Online").
+// Thông tin kết nối Firebase của game Caro.
 export const firebaseConfig = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE.firebaseapp.com",
-  databaseURL: "https://PASTE-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "PASTE",
-  appId: "PASTE"
+  apiKey: "AIzaSyAVKOGTas4wv5tRrzWerthjSkIBNRObCdU",
+  authDomain: "gamecaro-90440.firebaseapp.com",
+  databaseURL: "https://gamecaro-90440-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "gamecaro-90440",
+  appId: "1:50452082818:web:b7da783d547cdd0451c49b"
 };
