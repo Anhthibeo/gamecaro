@@ -1,26 +1,25 @@
-# Game Caro (PWA) – bản 3
+# 🎮 Game Caro
 
-Mới trong bản này:
-- Chơi với máy có 5 cấp độ: Dễ, Trung bình, Khó, Rất khó, Siêu khó.
-- Tài khoản: đăng ký / đăng nhập bằng email, hoặc chơi với tư cách khách. Khách có thể đăng ký sau để giữ nguyên Elo.
+Chơi ngay tại: **https://anhthibeo.github.io/gamecaro/**
 
-## Cập nhật lên GitHub
-Tải đè các file trong thư mục này lên repository (Add file → Upload files → Commit changes).
-**KHÔNG có file `firebase-config.js` trong gói này, hãy giữ nguyên file bạn đã điền trên GitHub.**
-Bản này đã đổi sw.js sang `caro-v4`, nên người dùng sẽ thấy nút "Có bản mới – bấm để cập nhật".
+Game Caro 5 quân liên tiếp, chạy trực tiếp trên trình duyệt, không cần tải về từ cửa hàng ứng dụng.
 
-## Bật đăng nhập bằng email (làm một lần trên Firebase)
-1. Vào console.firebase.google.com → project của bạn → Authentication → tab Sign-in method.
-2. Bấm Add new provider → chọn Email/Password → gạt công tắc đầu tiên (Email/Password) sang Enable, không cần bật "Email link" → Save.
-Anonymous (khách) vẫn giữ Enabled như cũ.
+## Tính năng
 
-## Cách hoạt động của tài khoản
-- Lần đầu bấm Chơi Online hoặc Bảng xếp hạng, game hỏi bạn đăng nhập, đăng ký hay chơi khách.
-- Khách đăng ký sau: bấm Tài khoản → nhập email, mật khẩu → Đăng ký. Elo và tên giữ nguyên.
-- Đăng nhập tài khoản có sẵn trên máy mới: bấm Tài khoản → Đăng nhập. Tên và avatar được lấy về từ tài khoản. Elo của tài khoản khách đang dùng trên máy đó sẽ không được gộp.
-- Email không được lưu vào bảng xếp hạng, chỉ tên và avatar.
-- Chưa có chức năng quên mật khẩu.
+- **Chơi với máy:** 5 cấp độ từ Dễ đến Siêu khó
+- **Chơi 2 người:** chung một máy
+- **Chơi Online:** ghép trận với người chơi khác, có Elo và bảng xếp hạng
+- **Tài khoản:** đăng ký bằng email hoặc chơi với tư cách khách
+- **Bàn cờ vô hạn:** kéo để di chuyển, chụm hai ngón hoặc lăn chuột để zoom
+- **Giới hạn 30 giây mỗi lượt:** hết giờ là thua
 
-## Lưu ý
-- Elo tính trên máy người chơi, chưa chống gian lận hoàn toàn (chống gian lận chuẩn cần server riêng).
-- Elo bị trừ ngay khi trận online bắt đầu và chỉ hoàn lại khi bạn thắng.
+## Cài như một ứng dụng
+
+- **iPhone/iPad:** mở link bằng Safari, bấm nút Chia sẻ, chọn "Thêm vào Màn hình chính"
+- **Android:** mở link bằng Chrome, bấm menu ⋮, chọn "Cài đặt ứng dụng"
+
+Sau khi cài, game mở toàn màn hình như một app thật và tự cập nhật mỗi khi có bản mới.
+
+## Luật chơi
+
+Hai người lần lượt đặt quân X và O vào ô trống. Ai xếp được 5 quân liên tiếp theo hàng ngang, dọc hoặc chéo trước thì thắng.
