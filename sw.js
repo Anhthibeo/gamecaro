@@ -1,6 +1,6 @@
 // Mỗi lần phát hành bản mới, đổi số phiên bản này (ví dụ caro-v2) để máy người dùng nhận cập nhật.
-const V = 'caro-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const V = 'caro-v2';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './app.js', './firebase-config.js', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(ASSETS)));

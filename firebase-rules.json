@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      ".indexOn": ["elo"],
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        "name": {".validate": "newData.isString() && newData.val().length <= 20"}
+      }
+    },
+    "queue": {
+      ".read": "auth != null",
+      "$uid": {".write": "auth != null"}
+    },
+    "match": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null"
+      }
+    },
+    "games": {
+      ".read": "auth != null",
+      "$gid": {".write": "auth != null"}
+    }
+  }
+}

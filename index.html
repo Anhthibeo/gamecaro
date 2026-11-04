@@ -12,81 +12,111 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
-
 <style>
-:root{--bg:#f6f1e7;--panel:#fffaf0;--line:#c9b99a;--text:#2b2418;--x:#d64545;--o:#2f6fd6;--win:#ffe08a;--last:#e8dcc0;--btn:#2b2418;--btnt:#fffaf0;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150f;--panel:#221f16;--line:#4a4332;--text:#f1e9d6;--x:#ff7a7a;--o:#7aa8ff;--win:#6b5a1c;--last:#332e20;--btn:#f1e9d6;--btnt:#17150f}}
+:root{--bg:#f6f1e7;--panel:#fffaf0;--line:#d6c8aa;--text:#2b2418;--sub:#7a6e58;--x:#d64545;--o:#2f6fd6;--win:#ffe08a;--last:#efe3c3;--btn:#2b2418;--btnt:#fffaf0;--bd:#e0d3b6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150f;--panel:#221f16;--line:#40392a;--text:#f1e9d6;--sub:#a89d84;--x:#ff7a7a;--o:#7aa8ff;--win:#6b5a1c;--last:#332e20;--btn:#f1e9d6;--btnt:#17150f;--bd:#3a3426}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%;margin:0;overscroll-behavior:none;touch-action:manipulation}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2{margin:0;text-align:center}
+button{font:inherit;background:var(--btn);color:var(--btnt);border:0;border-radius:10px;padding:11px 16px;cursor:pointer}
+button.alt{background:transparent;color:var(--text);border:1px solid var(--bd)}
+button.big{font-size:1.1rem;padding:15px}
+input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;width:100%}
+.screen{display:none;height:100%;flex-direction:column;padding:12px;max-width:720px;margin:0 auto}
+.screen.on{display:flex}
+.center{justify-content:center;gap:12px}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.profile{display:flex;gap:12px;align-items:center}
+.profile>div:last-child{flex:1}
+.sub{color:var(--sub);font-size:.85rem;margin-top:4px}
+.msg{min-height:1.4em;text-align:center;color:var(--sub);font-size:.9rem}
+.av{width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none;border:1px solid var(--bd)}
+.av.lg{width:56px;height:56px;font-size:32px;padding:0;color:inherit}
+.avpick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.avpick button{background:var(--panel);color:inherit;border:1px solid var(--bd);font-size:24px;padding:6px 10px}
+#lbList{list-style:none;margin:8px 0;padding:0;overflow:auto;flex:1}
+#lbList li{display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--bd)}
+#lbList li.me{background:var(--last);border-radius:8px}
+#lbList .rk{width:2rem;text-align:center;font-weight:700}
+#lbList .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#game{max-width:900px;padding:8px}
+#top{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.pl{position:relative;display:flex;align-items:center;gap:8px;padding:8px;border:2px solid var(--bd);border-radius:12px;background:var(--panel);overflow:hidden;min-width:0}
+.pl.r{flex-direction:row-reverse;text-align:right}
+.pl.act{border-color:var(--text)}
+.info{min-width:0;display:flex;flex-direction:column;flex:1}
+.info b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.95rem}
+.info span{font-size:.8rem;color:var(--sub)}
+.sym{font-style:normal;font-weight:800;font-size:1.2rem}
+.tbar{position:absolute;left:0;bottom:0;height:4px;width:100%}
+.tbar u{display:block;height:100%;width:0;text-decoration:none}
+#tm{font-size:1.6rem;font-weight:800;min-width:2.2rem;text-align:center}
+#tm.low{color:var(--x)}
+#cw{position:relative;flex:1;min-height:0;border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+#ctl{display:flex;gap:8px;margin-top:8px;justify-content:center}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.modal .card{text-align:center;display:flex;flex-direction:column;gap:12px;min-width:min(300px,100%)}
+.row{display:flex;gap:8px;justify-content:center}
 #upd{display:none;position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9}
-body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px;box-sizing:border-box}
-h1{margin:0;font-size:1.5rem}
-#status{font-size:1.1rem;font-weight:600;min-height:1.6em}
-#board{display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,600px);background:var(--panel);border:2px solid var(--line);border-radius:8px;overflow:hidden}
-.c{aspect-ratio:1;border:1px solid var(--line);margin:-.5px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(12px,3.6vw,24px);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
-.c.X{color:var(--x)}.c.O{color:var(--o)}
-.c.last{background:var(--last)}.c.win{background:var(--win)}
-.bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-button{background:var(--btn);color:var(--btnt);border:0;border-radius:8px;padding:9px 14px;font-size:.95rem;cursor:pointer}
-button.off{background:transparent;color:var(--text);border:1px solid var(--line)}
 </style>
 </head>
 <body>
-<h1>Game Caro</h1>
-<div id="status"></div>
-<div id="board"></div>
-<div class="bar">
-<button id="mAI">Chơi với máy</button>
-<button id="mPVP" class="off">2 người</button>
-<button id="undo" class="off">Đi lại</button>
-<button id="reset">Ván mới</button>
-</div>
+
+<section id="menu" class="screen on center">
+  <h1>Game Caro</h1>
+  <div class="card profile">
+    <button id="avBtn" class="av lg" title="Đổi avatar">😎</button>
+    <div><input id="nameIn" maxlength="16" placeholder="Tên của bạn"><div class="sub" id="eloLine">Elo: chưa có (vào Online để nhận)</div></div>
+  </div>
+  <div id="avPick" class="avpick" hidden></div>
+  <button class="big" id="bOnline">🌐 Chơi Online</button>
+  <button class="big alt" id="bOffline">📴 Chơi Offline</button>
+  <button class="big alt" id="bLb">🏆 Bảng xếp hạng</button>
+  <div id="menuMsg" class="msg"></div>
+</section>
+
+<section id="offline" class="screen center">
+  <h2>Chơi Offline</h2>
+  <button class="big" id="bAI">🤖 Chơi với máy</button>
+  <button class="big" id="bPVP">👥 2 người, chung máy</button>
+  <button class="big alt" data-back>← Quay lại</button>
+</section>
+
+<section id="lobby" class="screen center">
+  <h2>Đang tìm đối thủ…</h2>
+  <div class="msg">Bạn bè đang online sẽ được ghép với bạn. Nếu chưa có ai, hãy rủ thêm người vào chơi.</div>
+  <button class="big alt" id="bCancel">Hủy</button>
+</section>
+
+<section id="lb" class="screen">
+  <h2>🏆 Bảng xếp hạng</h2>
+  <ol id="lbList"></ol>
+  <div id="lbMsg" class="msg"></div>
+  <button class="big alt" data-back>← Quay lại</button>
+</section>
+
+<section id="game" class="screen">
+  <div id="top">
+    <div class="pl" id="pL"><div class="av" id="avL"></div><div class="info"><b id="nL"></b><span id="eL"></span></div><i class="sym" id="syL"></i><div class="tbar"><u></u></div></div>
+    <div id="tm">30</div>
+    <div class="pl r" id="pR"><div class="av" id="avR"></div><div class="info"><b id="nR"></b><span id="eR"></span></div><i class="sym" id="syR"></i><div class="tbar"><u></u></div></div>
+  </div>
+  <div id="cw"><canvas id="cv"></canvas></div>
+  <div id="ctl">
+    <button class="alt" id="zOut">−</button>
+    <button class="alt" id="zIn">+</button>
+    <button class="alt" id="zCen">⌖ Giữa</button>
+    <button class="alt" id="bLeave">Thoát</button>
+  </div>
+</section>
+
+<div class="modal" id="modal"><div class="card"><h2 id="mt"></h2><div id="mp"></div><div class="row"><button id="mAgain">Chơi lại</button><button class="alt" id="mMenu">Về menu</button></div></div></div>
 <button id="upd">Có bản mới – bấm để cập nhật</button>
-<script>
-const N=15;let b,turn,over,mode='ai',hist=[];
-const boardEl=document.getElementById('board'),st=document.getElementById('status');
-const cells=[];
-for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='c';d.onclick=()=>play(Math.floor(i/N),i%N,true);boardEl.appendChild(d);cells.push(d)}
-const D=[[0,1],[1,0],[1,1],[1,-1]];
-function inb(r,c){return r>=0&&c>=0&&r<N&&c<N}
-function line(r,c,p){for(const[dr,dc]of D){const l=[[r,c]];for(const s of[1,-1]){let y=r+dr*s,x=c+dc*s;while(inb(y,x)&&b[y][x]===p){l.push([y,x]);y+=dr*s;x+=dc*s}}if(l.length>=5)return l}return null}
-function render(){cells.forEach((d,i)=>{const v=b[Math.floor(i/N)][i%N];d.textContent=v;d.className='c'+(v?' '+v:'')});
-const l=hist[hist.length-1];if(l)cells[l[0]*N+l[1]].classList.add('last')}
-function setStatus(){st.textContent=over||(mode==='ai'?(turn==='X'?'Lượt bạn (X)':'Máy đang nghĩ…'):'Lượt của '+turn)}
-function play(r,c,human){
-if(over||b[r][c])return;if(human&&mode==='ai'&&turn!=='X')return;
-b[r][c]=turn;hist.push([r,c]);render();
-const w=line(r,c,turn);
-if(w){over=(mode==='ai'?(turn==='X'?'Bạn thắng! 🎉':'Máy thắng!'):turn+' thắng! 🎉');w.forEach(([y,x])=>cells[y*N+x].classList.add('win'));setStatus();return}
-if(hist.length===N*N){over='Hòa!';setStatus();return}
-turn=turn==='X'?'O':'X';setStatus();
-if(mode==='ai'&&turn==='O')setTimeout(ai,350)}
-function sc(r,c,p){let t=0;for(const[dr,dc]of D){let n=1,open=0;for(const s of[1,-1]){let y=r+dr*s,x=c+dc*s;while(inb(y,x)&&b[y][x]===p){n++;y+=dr*s;x+=dc*s}if(inb(y,x)&&!b[y][x])open++}
-if(n>=5)t+=1e6;else if(n===4)t+=open===2?20000:open?2000:0;else if(n===3)t+=open===2?1500:open?150:0;else if(n===2)t+=open===2?100:open?10:0;else t+=open}return t}
-function ai(){if(over)return;
-if(!hist.length){play(7,7);return}
-let best=-1,pick=[];
-for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(b[r][c])continue;
-let near=false;for(let y=r-2;y<=r+2&&!near;y++)for(let x=c-2;x<=c+2;x++)if(inb(y,x)&&b[y][x]){near=true;break}
-if(!near)continue;
-const s=sc(r,c,'O')*1.1+sc(r,c,'X')+Math.random();
-if(s>best){best=s;pick=[r,c]}}
-play(pick[0],pick[1])}
-function reset(){b=Array.from({length:N},()=>Array(N).fill(''));turn='X';over='';hist=[];render();setStatus()}
-function setMode(m){mode=m;document.getElementById('mAI').className=m==='ai'?'':'off';document.getElementById('mPVP').className=m==='pvp'?'':'off';reset()}
-document.getElementById('mAI').onclick=()=>setMode('ai');
-document.getElementById('mPVP').onclick=()=>setMode('pvp');
-document.getElementById('reset').onclick=reset;
-document.getElementById('undo').onclick=()=>{
-const k=mode==='ai'?2:1;if(hist.length<k)return;
-for(let i=0;i<k;i++){const[r,c]=hist.pop();b[r][c]=''}
-over='';turn=mode==='ai'?'X':(hist.length%2?'O':'X');render();setStatus()};
-reset();
-if('serviceWorker' in navigator){
-const had=navigator.serviceWorker.controller;
-navigator.serviceWorker.register('./sw.js').then(r=>r.update()).catch(()=>{});
-navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;const u=document.getElementById('upd');u.style.display='block';u.onclick=()=>location.reload()});
-}
-</script>
+
+<script src="app.js"></script>
 </body>
 </html>
