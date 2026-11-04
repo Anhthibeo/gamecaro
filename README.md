@@ -1,22 +1,26 @@
-# Game Caro (PWA) – bản 2
+# Game Caro (PWA) – bản 3
 
-Tính năng mới: menu Online/Offline, Elo + bảng xếp hạng, bàn cờ vô hạn có zoom, thanh tên/avatar/Elo phía trên, giới hạn 30 giây mỗi lượt (hết giờ là thua).
+Mới trong bản này:
+- Chơi với máy có 5 cấp độ: Dễ, Trung bình, Khó, Rất khó, Siêu khó.
+- Tài khoản: đăng ký / đăng nhập bằng email, hoặc chơi với tư cách khách. Khách có thể đăng ký sau để giữ nguyên Elo.
 
 ## Cập nhật lên GitHub
-Tải đè TẤT CẢ file trong thư mục này lên repository (index.html, app.js, sw.js, firebase-config.js, firebase-rules.json, manifest, icon...). Chế độ Offline hoạt động ngay, chưa cần Firebase.
+Tải đè các file trong thư mục này lên repository (Add file → Upload files → Commit changes).
+**KHÔNG có file `firebase-config.js` trong gói này, hãy giữ nguyên file bạn đã điền trên GitHub.**
+Bản này đã đổi sw.js sang `caro-v4`, nên người dùng sẽ thấy nút "Có bản mới – bấm để cập nhật".
 
-## Bật chơi Online (Firebase, gói Spark miễn phí)
-1. Vào console.firebase.google.com → Add project (có thể tắt Google Analytics).
-2. Build → Authentication → Get started → tab Sign-in method → bật **Anonymous**.
-3. Build → Realtime Database → Create Database → chọn vị trí (ví dụ Singapore) → Start in locked mode.
-4. Trong Realtime Database, tab **Rules**: xóa nội dung cũ, dán toàn bộ nội dung file `firebase-rules.json` → Publish.
-5. Project settings (biểu tượng bánh răng) → Your apps → biểu tượng Web `</>` → đặt tên app → copy khối `firebaseConfig`.
-6. Mở `firebase-config.js`, thay các giá trị `PASTE...` bằng thông tin vừa copy. Dòng `databaseURL` nằm ở trang Realtime Database nếu khối config không có.
-7. Nếu bị lỗi tên miền: Authentication → Settings → Authorized domains → thêm `TEN-CUA-BAN.github.io`.
-8. Tải `firebase-config.js` lên GitHub. Đổi `caro-v2` thành `caro-v3` trong `sw.js` mỗi lần phát hành.
+## Bật đăng nhập bằng email (làm một lần trên Firebase)
+1. Vào console.firebase.google.com → project của bạn → Authentication → tab Sign-in method.
+2. Bấm Add new provider → chọn Email/Password → gạt công tắc đầu tiên (Email/Password) sang Enable, không cần bật "Email link" → Save.
+Anonymous (khách) vẫn giữ Enabled như cũ.
+
+## Cách hoạt động của tài khoản
+- Lần đầu bấm Chơi Online hoặc Bảng xếp hạng, game hỏi bạn đăng nhập, đăng ký hay chơi khách.
+- Khách đăng ký sau: bấm Tài khoản → nhập email, mật khẩu → Đăng ký. Elo và tên giữ nguyên.
+- Đăng nhập tài khoản có sẵn trên máy mới: bấm Tài khoản → Đăng nhập. Tên và avatar được lấy về từ tài khoản. Elo của tài khoản khách đang dùng trên máy đó sẽ không được gộp.
+- Email không được lưu vào bảng xếp hạng, chỉ tên và avatar.
+- Chưa có chức năng quên mật khẩu.
 
 ## Lưu ý
-- Elo được tính trên máy người chơi, nên chưa chống gian lận hoàn toàn (người rành kỹ thuật vẫn có thể sửa điểm). Chống gian lận chuẩn cần server riêng (Cloud Functions, phải bật gói trả phí). Hiện tại cách này đủ cho nhóm bạn bè.
-- Để hạn chế bỏ trận: Elo bị trừ ngay khi trận bắt đầu và chỉ được hoàn lại khi bạn thắng.
-- Tài khoản là ẩn danh, gắn với trình duyệt/app đã cài. Xóa dữ liệu trình duyệt, hoặc cài lại bản PWA trên iPhone (bộ nhớ riêng với Safari), sẽ tạo người chơi mới với 1000 Elo.
-- Gói Spark có giới hạn kết nối đồng thời và dung lượng, hãy xem trang giá Firebase để biết con số hiện hành.
+- Elo tính trên máy người chơi, chưa chống gian lận hoàn toàn (chống gian lận chuẩn cần server riêng).
+- Elo bị trừ ngay khi trận online bắt đầu và chỉ hoàn lại khi bạn thắng.

@@ -10,7 +10,8 @@ const me = {
   name: store.get('name', 'Player' + Math.floor(100 + Math.random() * 900)),
   avatar: store.get('avatar', AVATARS[0])
 };
-let OFFSET = 0, FB = null, G = null, lobby = null;
+let OFFSET = 0, FB = null, G = null, lobby = null, pendingNext = null;
+const LEVELS = [null, { n: 'Dễ', a: '🐣' }, { n: 'Trung bình', a: '🙂' }, { n: 'Khó', a: '🤖' }, { n: 'Rất khó', a: '👹' }, { n: 'Siêu khó', a: '💀' }];
 const now = () => Date.now() + OFFSET;
 const other = p => p === 'X' ? 'O' : 'X';
 const kk = (r, c) => r + ',' + c;
@@ -34,17 +35,25 @@ AVATARS.forEach(a => {
   $('avPick').appendChild(b);
 });
 $('avBtn').onclick = () => { $('avPick').hidden = !$('avPick').hidden };
-document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => show('menu'));
+document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => { pendingNext = null; show('menu') });
 $('bOffline').onclick = () => { saveProfileLocal(); show('offline') };
-$('bAI').onclick = () => startOffline('ai');
+$('bAI').onclick = () => show('levels');
+document.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => startOffline('ai', +b.dataset.lv));
+$('lvBack').onclick = () => show('offline');
 $('bPVP').onclick = () => startOffline('pvp');
-$('bOnline').onclick = async () => {
+async function goOnline(next) {
   saveProfileLocal(); msg('Đang kết nối…');
-  try { await initFirebase(); msg(''); await findMatch() } catch (e) { msg(errText(e)) }
-};
-$('bLb').onclick = async () => {
-  saveProfileLocal(); msg('Đang tải…');
-  try { await initFirebase(); await ensureProfile(); msg(''); await showLeaderboard() } catch (e) { msg(errText(e)) }
+  try { await initFirebase() } catch (e) { msg(errText(e)); return }
+  msg('');
+  if (!FB.auth.currentUser) { pendingNext = next; showAcct(); return }
+  try { await next() } catch (e) { msg(errText(e)) }
+}
+$('bOnline').onclick = () => goOnline(findMatch);
+$('bLb').onclick = () => goOnline(async () => { await ensureProfile(); await showLeaderboard() });
+$('bAcct').onclick = async () => {
+  saveProfileLocal(); msg('Đang kết nối…');
+  try { await initFirebase() } catch (e) { msg(errText(e)); return }
+  msg(''); pendingNext = null; showAcct();
 };
 function errText(e) {
   if (e && e.message === 'config') return 'Chưa cấu hình Firebase. Xem README.md, phần "Bật chơi Online".';
@@ -63,20 +72,74 @@ async function initFirebase() {
   ]);
   const app = A.initializeApp(cfg), auth = Au.getAuth(app), db = D.getDatabase(app);
   await auth.authStateReady();
-  if (!auth.currentUser) await Au.signInAnonymously(auth);
   D.onValue(D.ref(db, '.info/serverTimeOffset'), s => { OFFSET = s.val() || 0 });
-  FB = { D, db, uid: auth.currentUser.uid, profile: null };
+  FB = { D, db, Au, auth, profile: null, get uid() { return auth.currentUser && auth.currentUser.uid } };
   return FB;
 }
-async function ensureProfile() {
+async function ensureProfile(adopt) {
   const { D, db, uid } = FB, r = D.ref(db, 'users/' + uid);
   let p = (await D.get(r)).val();
   if (!p) { p = { name: me.name, avatar: me.avatar, elo: 1000, games: 0, wins: 0 }; await D.set(r, p) }
-  else if (p.name !== me.name || p.avatar !== me.avatar) {
+  else if (adopt) {
+    me.name = p.name || me.name; me.avatar = p.avatar || me.avatar;
+    $('nameIn').value = me.name; $('avBtn').textContent = me.avatar;
+    store.set('name', me.name); store.set('avatar', me.avatar);
+  } else if (p.name !== me.name || p.avatar !== me.avatar) {
     await D.update(r, { name: me.name, avatar: me.avatar }); p.name = me.name; p.avatar = me.avatar;
   }
-  FB.profile = p; $('eloLine').textContent = 'Elo: ' + p.elo;
+  FB.profile = p; updateAccLine();
 }
+function updateAccLine() {
+  let t = 'Chưa đăng nhập';
+  const u = FB && FB.auth.currentUser;
+  if (u) t = (u.isAnonymous ? 'Khách' : (u.email || 'Tài khoản')) + (FB.profile ? ' · Elo ' + FB.profile.elo : '');
+  $('eloLine').textContent = t;
+}
+function authErr(e) {
+  const c = (e && e.code) || '';
+  if (c.includes('email-already-in-use') || c.includes('credential-already-in-use')) return 'Email này đã được đăng ký. Hãy bấm Đăng nhập.';
+  if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found') || c.includes('invalid-login')) return 'Sai email hoặc mật khẩu.';
+  if (c.includes('weak-password')) return 'Mật khẩu cần ít nhất 6 ký tự.';
+  if (c.includes('invalid-email')) return 'Email không hợp lệ.';
+  if (c.includes('operation-not-allowed')) return 'Chưa bật Email/Password trong Firebase (xem README).';
+  if (c.includes('too-many-requests')) return 'Thử quá nhiều lần, hãy đợi một lúc.';
+  return 'Có lỗi, hãy kiểm tra mạng và thử lại.';
+}
+function showAcct(note) {
+  const u = FB.auth.currentUser, anon = u && u.isAnonymous;
+  $('acStatus').textContent = !u ? 'Bạn chưa đăng nhập. Chọn một cách để vào Online.'
+    : anon ? 'Đang chơi với tư cách khách. Đăng ký để giữ Elo khi đổi máy.' : 'Đã đăng nhập: ' + u.email;
+  $('acForm').hidden = !!u && !anon; $('acGuest').hidden = !!u; $('acOut').hidden = !u || !!anon; $('acCont').hidden = !u;
+  $('acMsg').textContent = note || '';
+  show('acct');
+}
+async function finishAuth() {
+  const n = pendingNext; pendingNext = null; updateAccLine();
+  if (n) { try { await n() } catch (e) { msg(errText(e)); show('menu') } } else show('menu');
+}
+async function authDo(fn, adopt) {
+  $('acMsg').textContent = 'Đang xử lý…';
+  try { await fn(); FB.profile = null; await ensureProfile(adopt); await finishAuth() } catch (e) { $('acMsg').textContent = authErr(e) }
+}
+const cred = () => ({ email: $('acEmail').value.trim(), pw: $('acPass').value });
+$('acLogin').onclick = () => {
+  const { email, pw } = cred(); if (!email || !pw) { $('acMsg').textContent = 'Nhập email và mật khẩu.'; return }
+  const u = FB.auth.currentUser;
+  if (u && u.isAnonymous && !confirm('Đăng nhập sẽ rời tài khoản khách hiện tại (Elo của khách sẽ không được giữ). Tiếp tục?')) return;
+  authDo(() => FB.Au.signInWithEmailAndPassword(FB.auth, email, pw), true);
+};
+$('acReg').onclick = () => {
+  const { email, pw } = cred(); if (!email || !pw) { $('acMsg').textContent = 'Nhập email và mật khẩu.'; return }
+  const u = FB.auth.currentUser;
+  authDo(() => u && u.isAnonymous ? FB.Au.linkWithCredential(u, FB.Au.EmailAuthProvider.credential(email, pw)) : FB.Au.createUserWithEmailAndPassword(FB.auth, email, pw), false);
+};
+$('acGuest').onclick = () => authDo(() => FB.Au.signInAnonymously(FB.auth), false);
+$('acOut').onclick = async () => { await FB.Au.signOut(FB.auth); FB.profile = null; updateAccLine(); showAcct('Đã đăng xuất.') };
+$('acCont').onclick = finishAuth;
+initFirebase().then(async () => {
+  if (FB.auth.currentUser) { try { await ensureProfile() } catch (e) {} }
+  updateAccLine();
+}).catch(() => {});
 async function adjustElo(delta, wins, games) {
   const { D, db, uid } = FB;
   const r = await D.runTransaction(D.ref(db, 'users/' + uid), cur => {
@@ -85,7 +148,7 @@ async function adjustElo(delta, wins, games) {
     return cur;
   });
   const v = r.snapshot.val();
-  if (v) { FB.profile = v; $('eloLine').textContent = 'Elo: ' + v.elo }
+  if (v) { FB.profile = v; updateAccLine() }
 }
 const expected = (a, b) => 1 / (1 + Math.pow(10, (b - a) / 400));
 function eloDeltas(a, b) {
@@ -158,10 +221,11 @@ function newGame(o) {
   $('modal').classList.remove('on');
   show('game');
 }
-function startOffline(mode) {
+function startOffline(mode, level) {
   saveProfileLocal();
-  newGame({ mode });
-  if (mode === 'ai') setPlayers({ name: me.name, avatar: me.avatar, elo: 'Offline', side: 'X' }, { name: 'Máy', avatar: '🤖', elo: 'Offline', side: 'O' });
+  level = level || 3;
+  newGame({ mode, level });
+  if (mode === 'ai') setPlayers({ name: me.name, avatar: me.avatar, elo: 'Offline', side: 'X' }, { name: 'Máy · ' + LEVELS[level].n, avatar: LEVELS[level].a, elo: 'Offline', side: 'O' });
   else setPlayers({ name: 'Người chơi 1', avatar: me.avatar, elo: 'Offline', side: 'X' }, { name: 'Người chơi 2', avatar: '🙂', elo: 'Offline', side: 'O' });
 }
 async function startOnline(gid) {
@@ -249,17 +313,87 @@ function sc(r, c, p) {
   }
   return t;
 }
-function aiPick() {
-  if (!G.moves.length) return [0, 0];
-  const cand = new Set();
-  for (const [r, c] of G.moves) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) if (!gp(r + y, c + x)) cand.add(kk(r + y, c + x));
+function candidates(d) {
+  const set = new Set(), out = [];
+  for (const [r, c] of G.moves) for (let y = -d; y <= d; y++) for (let x = -d; x <= d; x++) {
+    const rr = r + y, cc = c + x, key = kk(rr, cc);
+    if (!set.has(key) && !gp(rr, cc)) { set.add(key); out.push([rr, cc]) }
+  }
+  return out;
+}
+function heur(defW) {
   let best = -1, pick = [0, 0];
-  for (const s of cand) {
-    const [r, c] = s.split(',').map(Number);
-    const v = sc(r, c, 'O') * 1.1 + sc(r, c, 'X') + Math.random();
+  for (const [r, c] of candidates(2)) {
+    const v = sc(r, c, 'O') * 1.1 + sc(r, c, 'X') * defW + Math.random();
     if (v > best) { best = v; pick = [r, c] }
   }
   return pick;
+}
+function genCands(S, turn, K) {
+  const set = new Set(), list = [];
+  for (const [r, c] of S) for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) {
+    const rr = r + y, cc = c + x, key = kk(rr, cc);
+    if (!set.has(key) && !gp(rr, cc)) { set.add(key); list.push([rr, cc, sc(rr, cc, turn) * 1.1 + sc(rr, cc, other(turn))]) }
+  }
+  list.sort((a, b) => b[2] - a[2]);
+  return list.slice(0, K);
+}
+function pat(n, open) {
+  if (n >= 5) return 1e6;
+  if (n === 4) return open === 2 ? 300000 : open ? 8000 : 0;
+  if (n === 3) return open === 2 ? 5000 : open ? 300 : 0;
+  if (n === 2) return open === 2 ? 200 : open ? 20 : 0;
+  return 0;
+}
+function evalBoard(S) {
+  let t = 0;
+  for (const [r, c, p] of S) for (const [dr, dc] of DIRS) {
+    if (gp(r - dr, c - dc) === p) continue;
+    let n = 1, y = r + dr, x = c + dc;
+    while (gp(y, x) === p) { n++; y += dr; x += dc }
+    const v = pat(n, (gp(r - dr, c - dc) === '' ? 1 : 0) + (gp(y, x) === '' ? 1 : 0));
+    t += p === 'O' ? v : -v * 1.05;
+  }
+  return t;
+}
+function search(S, d, alpha, beta, turn) {
+  if (d === 0) return evalBoard(S);
+  const cs = genCands(S, turn, d >= 3 ? 10 : 7);
+  if (!cs.length) return evalBoard(S);
+  let best = turn === 'O' ? -Infinity : Infinity;
+  for (const [r, c] of cs) {
+    G.board.set(kk(r, c), turn); S.push([r, c, turn]);
+    const v = line(r, c, turn) ? (turn === 'O' ? 1 : -1) * (1e7 + d) : search(S, d - 1, alpha, beta, other(turn));
+    S.pop(); G.board.delete(kk(r, c));
+    if (turn === 'O') { if (v > best) best = v; if (v > alpha) alpha = v }
+    else { if (v < best) best = v; if (v < beta) beta = v }
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+function searchPick(depth) {
+  const S = G.moves.slice(), cs = genCands(S, 'O', 12);
+  let best = -Infinity, pick = [cs[0][0], cs[0][1]];
+  for (const [r, c] of cs) {
+    G.board.set(kk(r, c), 'O'); S.push([r, c, 'O']);
+    let v = line(r, c, 'O') ? 1e9 : search(S, depth - 1, -Infinity, Infinity, 'X');
+    S.pop(); G.board.delete(kk(r, c));
+    v += (sc(r, c, 'O') * 1.1 + sc(r, c, 'X')) * 0.3 + Math.random();
+    if (v > best) { best = v; pick = [r, c] }
+  }
+  return pick;
+}
+function aiPick() {
+  const L = G.level || 3;
+  if (!G.moves.length) return [0, 0];
+  if (L <= 2) {
+    if (Math.random() < (L === 1 ? .5 : .15)) {
+      const c = candidates(1); return c[Math.floor(Math.random() * c.length)];
+    }
+    return heur(L === 1 ? .6 : .9);
+  }
+  if (L === 3) return heur(1);
+  return searchPick(L === 4 ? 2 : 4);
 }
 
 /* ---------- Kết thúc ---------- */
@@ -304,7 +438,7 @@ $('mMenu').onclick = leaveGame;
 $('mAgain').onclick = async () => {
   const mode = G && G.mode;
   if (mode === 'online') { leaveGame(); try { await findMatch() } catch (e) { msg(errText(e)) } }
-  else if (mode) { G.unsubs.forEach(f => f()); startOffline(mode) }
+  else if (mode) { const lv = G.level; G.unsubs.forEach(f => f()); startOffline(mode, lv) }
 };
 
 /* ---------- Đồng hồ ---------- */

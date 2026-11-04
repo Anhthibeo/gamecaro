@@ -60,6 +60,7 @@ input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(-
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;z-index:5}
 .modal.on{display:flex}
 .modal .card{text-align:center;display:flex;flex-direction:column;gap:12px;min-width:min(300px,100%)}
+#acForm{display:flex;flex-direction:column;gap:10px}
 .row{display:flex;gap:8px;justify-content:center}
 #upd{display:none;position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9}
 </style>
@@ -70,12 +71,13 @@ input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(-
   <h1>Game Caro</h1>
   <div class="card profile">
     <button id="avBtn" class="av lg" title="Đổi avatar">😎</button>
-    <div><input id="nameIn" maxlength="16" placeholder="Tên của bạn"><div class="sub" id="eloLine">Elo: chưa có (vào Online để nhận)</div></div>
+    <div><input id="nameIn" maxlength="16" placeholder="Tên của bạn"><div class="sub" id="eloLine">Chưa đăng nhập</div></div>
   </div>
   <div id="avPick" class="avpick" hidden></div>
   <button class="big" id="bOnline">🌐 Chơi Online</button>
   <button class="big alt" id="bOffline">📴 Chơi Offline</button>
   <button class="big alt" id="bLb">🏆 Bảng xếp hạng</button>
+  <button class="big alt" id="bAcct">👤 Tài khoản</button>
   <div id="menuMsg" class="msg"></div>
 </section>
 
@@ -83,6 +85,31 @@ input{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(-
   <h2>Chơi Offline</h2>
   <button class="big" id="bAI">🤖 Chơi với máy</button>
   <button class="big" id="bPVP">👥 2 người, chung máy</button>
+  <button class="big alt" data-back>← Quay lại</button>
+</section>
+
+<section id="levels" class="screen center">
+  <h2>Chọn độ khó</h2>
+  <button class="big" data-lv="1">🐣 Dễ</button>
+  <button class="big" data-lv="2">🙂 Trung bình</button>
+  <button class="big" data-lv="3">🤖 Khó</button>
+  <button class="big" data-lv="4">👹 Rất khó</button>
+  <button class="big" data-lv="5">💀 Siêu khó</button>
+  <button class="big alt" id="lvBack">← Quay lại</button>
+</section>
+
+<section id="acct" class="screen center">
+  <h2>Tài khoản</h2>
+  <div class="msg" id="acStatus"></div>
+  <div id="acForm">
+    <input id="acEmail" type="email" placeholder="Email" autocomplete="email">
+    <input id="acPass" type="password" placeholder="Mật khẩu (từ 6 ký tự)" autocomplete="current-password">
+    <div class="row"><button id="acLogin">Đăng nhập</button><button id="acReg" class="alt">Đăng ký</button></div>
+  </div>
+  <button class="big alt" id="acGuest">👤 Chơi với tư cách khách</button>
+  <button class="big" id="acCont">Tiếp tục</button>
+  <button class="alt" id="acOut">Đăng xuất</button>
+  <div class="msg" id="acMsg"></div>
   <button class="big alt" data-back>← Quay lại</button>
 </section>
 
