@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Game Caro</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f6f1e7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Caro">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+
+<style>
+:root{--bg:#f6f1e7;--panel:#fffaf0;--line:#c9b99a;--text:#2b2418;--x:#d64545;--o:#2f6fd6;--win:#ffe08a;--last:#e8dcc0;--btn:#2b2418;--btnt:#fffaf0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17150f;--panel:#221f16;--line:#4a4332;--text:#f1e9d6;--x:#ff7a7a;--o:#7aa8ff;--win:#6b5a1c;--last:#332e20;--btn:#f1e9d6;--btnt:#17150f}}
+html,body{height:100%;margin:0;overscroll-behavior:none;touch-action:manipulation}
+#upd{display:none;position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px;box-sizing:border-box}
+h1{margin:0;font-size:1.5rem}
+#status{font-size:1.1rem;font-weight:600;min-height:1.6em}
+#board{display:grid;grid-template-columns:repeat(15,1fr);width:min(94vw,600px);background:var(--panel);border:2px solid var(--line);border-radius:8px;overflow:hidden}
+.c{aspect-ratio:1;border:1px solid var(--line);margin:-.5px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:clamp(12px,3.6vw,24px);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.c.X{color:var(--x)}.c.O{color:var(--o)}
+.c.last{background:var(--last)}.c.win{background:var(--win)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+button{background:var(--btn);color:var(--btnt);border:0;border-radius:8px;padding:9px 14px;font-size:.95rem;cursor:pointer}
+button.off{background:transparent;color:var(--text);border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<h1>Game Caro</h1>
+<div id="status"></div>
+<div id="board"></div>
+<div class="bar">
+<button id="mAI">Chơi với máy</button>
+<button id="mPVP" class="off">2 người</button>
+<button id="undo" class="off">Đi lại</button>
+<button id="reset">Ván mới</button>
+</div>
+<button id="upd">Có bản mới – bấm để cập nhật</button>
+<script>
+const N=15;let b,turn,over,mode='ai',hist=[];
+const boardEl=document.getElementById('board'),st=document.getElementById('status');
+const cells=[];
+for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='c';d.onclick=()=>play(Math.floor(i/N),i%N,true);boardEl.appendChild(d);cells.push(d)}
+const D=[[0,1],[1,0],[1,1],[1,-1]];
+function inb(r,c){return r>=0&&c>=0&&r<N&&c<N}
+function line(r,c,p){for(const[dr,dc]of D){const l=[[r,c]];for(const s of[1,-1]){let y=r+dr*s,x=c+dc*s;while(inb(y,x)&&b[y][x]===p){l.push([y,x]);y+=dr*s;x+=dc*s}}if(l.length>=5)return l}return null}
+function render(){cells.forEach((d,i)=>{const v=b[Math.floor(i/N)][i%N];d.textContent=v;d.className='c'+(v?' '+v:'')});
+const l=hist[hist.length-1];if(l)cells[l[0]*N+l[1]].classList.add('last')}
+function setStatus(){st.textContent=over||(mode==='ai'?(turn==='X'?'Lượt bạn (X)':'Máy đang nghĩ…'):'Lượt của '+turn)}
+function play(r,c,human){
+if(over||b[r][c])return;if(human&&mode==='ai'&&turn!=='X')return;
+b[r][c]=turn;hist.push([r,c]);render();
+const w=line(r,c,turn);
+if(w){over=(mode==='ai'?(turn==='X'?'Bạn thắng! 🎉':'Máy thắng!'):turn+' thắng! 🎉');w.forEach(([y,x])=>cells[y*N+x].classList.add('win'));setStatus();return}
+if(hist.length===N*N){over='Hòa!';setStatus();return}
+turn=turn==='X'?'O':'X';setStatus();
+if(mode==='ai'&&turn==='O')setTimeout(ai,350)}
+function sc(r,c,p){let t=0;for(const[dr,dc]of D){let n=1,open=0;for(const s of[1,-1]){let y=r+dr*s,x=c+dc*s;while(inb(y,x)&&b[y][x]===p){n++;y+=dr*s;x+=dc*s}if(inb(y,x)&&!b[y][x])open++}
+if(n>=5)t+=1e6;else if(n===4)t+=open===2?20000:open?2000:0;else if(n===3)t+=open===2?1500:open?150:0;else if(n===2)t+=open===2?100:open?10:0;else t+=open}return t}
+function ai(){if(over)return;
+if(!hist.length){play(7,7);return}
+let best=-1,pick=[];
+for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(b[r][c])continue;
+let near=false;for(let y=r-2;y<=r+2&&!near;y++)for(let x=c-2;x<=c+2;x++)if(inb(y,x)&&b[y][x]){near=true;break}
+if(!near)continue;
+const s=sc(r,c,'O')*1.1+sc(r,c,'X')+Math.random();
+if(s>best){best=s;pick=[r,c]}}
+play(pick[0],pick[1])}
+function reset(){b=Array.from({length:N},()=>Array(N).fill(''));turn='X';over='';hist=[];render();setStatus()}
+function setMode(m){mode=m;document.getElementById('mAI').className=m==='ai'?'':'off';document.getElementById('mPVP').className=m==='pvp'?'':'off';reset()}
+document.getElementById('mAI').onclick=()=>setMode('ai');
+document.getElementById('mPVP').onclick=()=>setMode('pvp');
+document.getElementById('reset').onclick=reset;
+document.getElementById('undo').onclick=()=>{
+const k=mode==='ai'?2:1;if(hist.length<k)return;
+for(let i=0;i<k;i++){const[r,c]=hist.pop();b[r][c]=''}
+over='';turn=mode==='ai'?'X':(hist.length%2?'O':'X');render();setStatus()};
+reset();
+if('serviceWorker' in navigator){
+const had=navigator.serviceWorker.controller;
+navigator.serviceWorker.register('./sw.js').then(r=>r.update()).catch(()=>{});
+navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;const u=document.getElementById('upd');u.style.display='block';u.onclick=()=>location.reload()});
+}
+</script>
+</body>
+</html>
